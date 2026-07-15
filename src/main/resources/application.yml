@@ -2,6 +2,21 @@ spring:
   application:
     name: spring-demo
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: vutranit04@gmail.com
+    password: dwfacvtomlhfllcb
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            trust: smtp.gmail.com
+
   datasource:
     url: jdbc:mysql://localhost:3306/spring_demo?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true
     username: root

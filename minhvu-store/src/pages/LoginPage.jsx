@@ -87,8 +87,13 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="auth-link">
-          Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>
+        <div className="auth-link" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '16px' }}>
+          <div>
+            Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>
+          </div>
+          <div>
+            <Link to="/forgot-password" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Quên mật khẩu?</Link>
+          </div>
         </div>
       </div>
     </div>

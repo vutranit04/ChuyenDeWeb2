@@ -29,6 +29,7 @@ export const getCategoryPosts = () => api.get('/category-posts');
 export const createCustomer = (data) => api.post('/customers', data);
 export const getCustomerById = (id) => api.get(`/customers/${id}`);
 export const updateCustomer = (id, data) => api.put(`/customers/${id}`, data);
+export const forgotPassword = (data) => api.post('/customers/forgot-password', data);
 
 // ===== ORDERS =====
 export const createOrder = (orderRequest) => api.post('/orders', orderRequest);
