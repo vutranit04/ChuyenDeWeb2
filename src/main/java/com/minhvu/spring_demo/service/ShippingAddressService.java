@@ -31,6 +31,13 @@ public class ShippingAddressService {
 
     @Transactional
     public ShippingAddress createAddress(Long customerId, ShippingAddress address) {
+        if (address.getAddressId() != null) {
+            if (address.getAddressId() <= 0) {
+                address.setAddressId(null);
+            } else if (addressRepository.existsById(address.getAddressId())) {
+                throw new IllegalArgumentException("Mã địa chỉ giao hàng (ID: " + address.getAddressId() + ") đã tồn tại!");
+            }
+        }
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khách hàng với ID: " + customerId));
         address.setCustomer(customer);

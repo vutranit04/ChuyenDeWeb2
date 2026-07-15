@@ -22,12 +22,10 @@ public class OrderController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<OrderDTO>> getAllOrders(
-            @RequestParam(required = false) String status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<List<OrderDTO>> getAllOrders(
+            @RequestParam(required = false) String status) {
         return ResponseEntity.ok(
-                orderService.getAllOrders(status, PageRequest.of(page, size, Sort.by("orderDate").descending()))
+                orderService.getAllOrders(status)
         );
     }
 
@@ -51,6 +49,12 @@ public class OrderController {
             @PathVariable Long id,
             @RequestBody Map<String, String> body) {
         return ResponseEntity.ok(orderService.updateOrderStatus(id, body.get("status")));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, String>> deleteOrder(@PathVariable Long id) {
+        orderService.deleteOrder(id);
+        return ResponseEntity.ok(Map.of("message", "Xóa đơn hàng thành công"));
     }
 
     // Order Detail endpoints

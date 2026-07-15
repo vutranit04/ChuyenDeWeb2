@@ -4,6 +4,11 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
 @Table(name = "posts")
 @Getter
@@ -11,15 +16,23 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Post {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private Long postId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_post_id", nullable = false)
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private CategoryPost categoryPost;
+
+    @Transient
+    @JsonProperty(value = "categoryPostId", access = JsonProperty.Access.WRITE_ONLY)
+    @Schema(description = "Mã danh mục bài viết", example = "1")
+    private Long categoryPostId;
 
     @Column(length = 255, nullable = false)
     private String title;
@@ -35,6 +48,7 @@ public class Post {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private User author;
 
     @Column(nullable = false)

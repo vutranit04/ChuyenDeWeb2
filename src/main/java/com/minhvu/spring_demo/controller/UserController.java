@@ -2,12 +2,10 @@ package com.minhvu.spring_demo.controller;
 
 import com.minhvu.spring_demo.dto.UserDTO;
 import com.minhvu.spring_demo.service.UserService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -21,13 +19,9 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<UserDTO>> getAllUsers(
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false) String role,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
         return ResponseEntity.ok(
-                userService.getAllUsers(search, role, PageRequest.of(page, size, Sort.by("createdAt").descending()))
+                userService.getAllUsers()
         );
     }
 

@@ -39,9 +39,11 @@ public class SecurityConfig {
                 // Public endpoints
                 .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/products/**", "/api/categories/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/posts/**", "/api/category-posts/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/posts/**", "/api/category-posts/**", "/api/banners/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/customers").permitAll() // customer register
+                .requestMatchers("/api/customers", "/api/customers/**", "/api/addresses", "/api/addresses/**", "/api/orders", "/api/orders/**").permitAll() // customer actions
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                .requestMatchers("/").permitAll()
+                .requestMatchers("/", "/index.html", "/favicon.ico", "/css/**", "/js/**", "/images/**", "/uploads/**").permitAll()
                 // Admin-only endpoints
                 .requestMatchers("/api/users/**").hasRole("ADMIN")
                 .requestMatchers("/api/dashboard/**").hasAnyRole("ADMIN", "STAFF")
@@ -66,7 +68,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:5173"));
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://localhost:3000",
+            "http://localhost:3001",
+            "http://localhost:5173",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:3001",
+            "http://127.0.0.1:5173"
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

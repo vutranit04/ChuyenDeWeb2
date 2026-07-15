@@ -5,9 +5,10 @@ import com.minhvu.spring_demo.entity.Product;
 import com.minhvu.spring_demo.exception.ResourceNotFoundException;
 import com.minhvu.spring_demo.repository.CategoryRepository;
 import com.minhvu.spring_demo.repository.ProductRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class ProductService {
@@ -20,15 +21,9 @@ public class ProductService {
         this.categoryRepository = categoryRepository;
     }
 
-    public Page<Product> getAllProducts(Long categoryId, Boolean status, Pageable pageable) {
-        if (categoryId != null && status != null) {
-            return productRepository.findByCategoryCategoryIdAndStatus(categoryId, status, pageable);
-        } else if (categoryId != null) {
-            return productRepository.findByCategoryCategoryId(categoryId, pageable);
-        } else if (status != null) {
-            return productRepository.findByStatus(status, pageable);
-        }
-        return productRepository.findAll(pageable);
+    public List<Product> getAllProducts() {
+        Sort sort = Sort.by("productId").descending();
+        return productRepository.findAll(sort);
     }
 
     public Product getProductById(Long id) {
@@ -37,8 +32,19 @@ public class ProductService {
     }
 
     public Product createProduct(Product product) {
-        if (product.getCategory() != null && product.getCategory().getCategoryId() != null) {
-            Category category = categoryRepository.findById(product.getCategory().getCategoryId())
+        if (product.getProductId() != null) {
+            if (product.getProductId() <= 0) {
+                product.setProductId(null);
+            } else if (productRepository.existsById(product.getProductId())) {
+                throw new IllegalArgumentException("Mã sản phẩm (ID: " + product.getProductId() + ") đã tồn tại!");
+            }
+        }
+        Long catId = product.getCategoryId();
+        if (catId == null && product.getCategory() != null) {
+            catId = product.getCategory().getCategoryId();
+        }
+        if (catId != null) {
+            Category category = categoryRepository.findById(catId)
                     .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy danh mục"));
             product.setCategory(category);
         }
@@ -54,8 +60,13 @@ public class ProductService {
         if (productDetails.getSpecifications() != null) product.setSpecifications(productDetails.getSpecifications());
         if (productDetails.getDescription() != null) product.setDescription(productDetails.getDescription());
         if (productDetails.getStatus() != null) product.setStatus(productDetails.getStatus());
-        if (productDetails.getCategory() != null && productDetails.getCategory().getCategoryId() != null) {
-            Category category = categoryRepository.findById(productDetails.getCategory().getCategoryId())
+
+        Long catId = productDetails.getCategoryId();
+        if (catId == null && productDetails.getCategory() != null) {
+            catId = productDetails.getCategory().getCategoryId();
+        }
+        if (catId != null) {
+            Category category = categoryRepository.findById(catId)
                     .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy danh mục"));
             product.setCategory(category);
         }
@@ -66,5 +77,24 @@ public class ProductService {
         Product product = getProductById(id);
         product.setStatus(false);
         productRepository.save(product);
+    }
+
+    public List<Product> getLatestProducts() {
+        return productRepository.findTop8ByStatusOrderByProductIdDesc(true);
+    }
+
+    public List<Product> getBestSellers() {
+        org.springframework.data.domain.PageRequest pageRequest = org.springframework.data.domain.PageRequest.of(0, 8);
+        List<Product> sellers = productRepository.findBestSellers(pageRequest);
+        if (sellers.size() < 8) {
+            List<Product> activeProducts = productRepository.findByStatus(true, Sort.by("productId").descending());
+            for (Product p : activeProducts) {
+                if (sellers.size() >= 8) break;
+                if (!sellers.stream().anyMatch(existing -> existing.getProductId().equals(p.getProductId()))) {
+                    sellers.add(p);
+                }
+            }
+        }
+        return sellers;
     }
 }

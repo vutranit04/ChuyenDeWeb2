@@ -2,12 +2,10 @@ package com.minhvu.spring_demo.controller;
 
 import com.minhvu.spring_demo.entity.Product;
 import com.minhvu.spring_demo.service.ProductService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -21,14 +19,20 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<Product>> getAllProducts(
-            @RequestParam(required = false) Long categoryId,
-            @RequestParam(required = false) Boolean status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<List<Product>> getAllProducts() {
         return ResponseEntity.ok(
-                productService.getAllProducts(categoryId, status, PageRequest.of(page, size, Sort.by("productId").descending()))
+                productService.getAllProducts()
         );
+    }
+
+    @GetMapping("/latest")
+    public ResponseEntity<List<Product>> getLatestProducts() {
+        return ResponseEntity.ok(productService.getLatestProducts());
+    }
+
+    @GetMapping("/best-sellers")
+    public ResponseEntity<List<Product>> getBestSellers() {
+        return ResponseEntity.ok(productService.getBestSellers());
     }
 
     @GetMapping("/{id}")

@@ -4,6 +4,7 @@ import com.minhvu.spring_demo.repository.CustomerRepository;
 import com.minhvu.spring_demo.repository.OrderDetailRepository;
 import com.minhvu.spring_demo.repository.OrderRepository;
 import com.minhvu.spring_demo.repository.ProductRepository;
+import com.minhvu.spring_demo.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -18,15 +19,18 @@ public class DashboardService {
     private final OrderDetailRepository orderDetailRepository;
     private final CustomerRepository customerRepository;
     private final ProductRepository productRepository;
+    private final UserRepository userRepository;
 
     public DashboardService(OrderRepository orderRepository,
                             OrderDetailRepository orderDetailRepository,
                             CustomerRepository customerRepository,
-                            ProductRepository productRepository) {
+                            ProductRepository productRepository,
+                            UserRepository userRepository) {
         this.orderRepository = orderRepository;
         this.orderDetailRepository = orderDetailRepository;
         this.customerRepository = customerRepository;
         this.productRepository = productRepository;
+        this.userRepository = userRepository;
     }
 
     public Map<String, Object> getSummary() {
@@ -35,6 +39,8 @@ public class DashboardService {
         summary.put("totalProducts", productRepository.count());
         summary.put("pendingOrders", orderRepository.countByStatus("Chờ duyệt"));
         summary.put("totalRevenue", orderRepository.sumTotalRevenue());
+        summary.put("totalOrders", orderRepository.count());
+        summary.put("totalUsers", userRepository.count());
         return summary;
     }
 

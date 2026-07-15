@@ -13,8 +13,10 @@ import java.util.List;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
-    Page<Order> findByStatus(String status, Pageable pageable);
-    Page<Order> findByCustomerCustomerId(Long customerId, Pageable pageable);
+    List<Order> findByStatus(String status);
+    List<Order> findByCustomerCustomerId(Long customerId);
+    List<Order> findByStatusOrderByOrderDateDesc(String status);
+    List<Order> findAllByOrderByOrderDateDesc();
 
     @Query("SELECT COUNT(o) FROM Order o WHERE o.status = :status")
     long countByStatus(@Param("status") String status);

@@ -4,10 +4,11 @@ import com.minhvu.spring_demo.dto.UserDTO;
 import com.minhvu.spring_demo.entity.User;
 import com.minhvu.spring_demo.exception.ResourceNotFoundException;
 import com.minhvu.spring_demo.repository.UserRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class UserService {
@@ -20,18 +21,11 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public Page<UserDTO> getAllUsers(String search, String role, Pageable pageable) {
-        Page<User> users;
-        if (search != null && !search.isEmpty() && role != null && !role.isEmpty()) {
-            users = userRepository.findByFullNameContainingIgnoreCaseAndRole(search, role, pageable);
-        } else if (search != null && !search.isEmpty()) {
-            users = userRepository.findByFullNameContainingIgnoreCase(search, pageable);
-        } else if (role != null && !role.isEmpty()) {
-            users = userRepository.findByRole(role, pageable);
-        } else {
-            users = userRepository.findAll(pageable);
-        }
-        return users.map(this::toDTO);
+    public List<UserDTO> getAllUsers() {
+        Sort sort = Sort.by("createdAt").descending();
+        return userRepository.findAll(sort).stream()
+                .map(this::toDTO)
+                .toList();
     }
 
     public UserDTO getUserById(Long id) {
@@ -41,6 +35,14 @@ public class UserService {
     }
 
     public UserDTO createUser(UserDTO dto) {
+        Long targetId = dto.getUserId();
+        if (targetId != null) {
+            if (targetId <= 0) {
+                targetId = null;
+            } else if (userRepository.existsById(targetId)) {
+                throw new IllegalArgumentException("Mã người dùng (ID: " + targetId + ") đã tồn tại!");
+            }
+        }
         if (userRepository.existsByUsername(dto.getUsername())) {
             throw new IllegalArgumentException("Tên đăng nhập đã tồn tại");
         }
@@ -49,6 +51,7 @@ public class UserService {
         }
 
         User user = User.builder()
+                .userId(targetId)
                 .username(dto.getUsername())
                 .password(passwordEncoder.encode(dto.getPassword() != null ? dto.getPassword() : "123456"))
                 .fullName(dto.getFullName())

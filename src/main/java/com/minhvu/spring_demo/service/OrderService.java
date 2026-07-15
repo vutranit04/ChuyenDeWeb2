@@ -36,14 +36,14 @@ public class OrderService {
         this.addressRepository = addressRepository;
     }
 
-    public Page<OrderDTO> getAllOrders(String status, Pageable pageable) {
-        Page<Order> orders;
+    public List<OrderDTO> getAllOrders(String status) {
+        List<Order> orders;
         if (status != null && !status.isEmpty()) {
-            orders = orderRepository.findByStatus(status, pageable);
+            orders = orderRepository.findByStatusOrderByOrderDateDesc(status);
         } else {
-            orders = orderRepository.findAll(pageable);
+            orders = orderRepository.findAllByOrderByOrderDateDesc();
         }
-        return orders.map(this::toDTO);
+        return orders.stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     public OrderDTO getOrderById(Long id) {
@@ -119,6 +119,12 @@ public class OrderService {
             ShippingAddress address = addressRepository.findById(orderDTO.getAddressId())
                     .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy địa chỉ giao hàng"));
             order.setShippingAddress(address);
+        } else if (orderDTO.getShippingAddress() != null && !orderDTO.getShippingAddress().isEmpty()) {
+            ShippingAddress address = order.getShippingAddress();
+            if (address != null) {
+                address.setSpecificAddress(orderDTO.getShippingAddress());
+                addressRepository.save(address);
+            }
         }
         if (orderDTO.getNote() != null) order.setNote(orderDTO.getNote());
 
@@ -240,6 +246,25 @@ public class OrderService {
         orderRepository.save(order);
 
         orderDetailRepository.delete(detail);
+    }
+
+    @Transactional
+    public void deleteOrder(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng với ID: " + id));
+
+        if (!"Đã hủy".equals(order.getStatus())) {
+            List<OrderDetail> details = orderDetailRepository.findByOrderOrderId(id);
+            for (OrderDetail detail : details) {
+                Product product = detail.getProduct();
+                product.setStockQuantity(product.getStockQuantity() + detail.getQuantity());
+                productRepository.save(product);
+            }
+        }
+
+        List<OrderDetail> details = orderDetailRepository.findByOrderOrderId(id);
+        orderDetailRepository.deleteAll(details);
+        orderRepository.deleteById(id);
     }
 
     private OrderDTO toDTO(Order order) {

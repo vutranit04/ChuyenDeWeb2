@@ -2,12 +2,10 @@ package com.minhvu.spring_demo.controller;
 
 import com.minhvu.spring_demo.entity.Customer;
 import com.minhvu.spring_demo.service.CustomerService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -21,12 +19,9 @@ public class CustomerController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<Customer>> getAllCustomers(
-            @RequestParam(required = false) String search,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<List<Customer>> getAllCustomers() {
         return ResponseEntity.ok(
-                customerService.getAllCustomers(search, PageRequest.of(page, size, Sort.by("createdAt").descending()))
+                customerService.getAllCustomers()
         );
     }
 

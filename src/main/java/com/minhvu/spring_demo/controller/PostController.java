@@ -2,13 +2,11 @@ package com.minhvu.spring_demo.controller;
 
 import com.minhvu.spring_demo.entity.Post;
 import com.minhvu.spring_demo.service.PostService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -22,12 +20,9 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<Post>> getAllPosts(
-            @RequestParam(required = false) Long categoryPostId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<List<Post>> getAllPosts() {
         return ResponseEntity.ok(
-                postService.getAllPosts(categoryPostId, PageRequest.of(page, size, Sort.by("createdAt").descending()))
+                postService.getAllPosts()
         );
     }
 

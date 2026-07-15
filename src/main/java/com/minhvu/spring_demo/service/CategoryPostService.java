@@ -26,6 +26,13 @@ public class CategoryPostService {
     }
 
     public CategoryPost createCategoryPost(CategoryPost categoryPost) {
+        if (categoryPost.getCategoryPostId() != null) {
+            if (categoryPost.getCategoryPostId() <= 0) {
+                categoryPost.setCategoryPostId(null);
+            } else if (categoryPostRepository.existsById(categoryPost.getCategoryPostId())) {
+                throw new IllegalArgumentException("Mã danh mục bài viết (ID: " + categoryPost.getCategoryPostId() + ") đã tồn tại!");
+            }
+        }
         return categoryPostRepository.save(categoryPost);
     }
 

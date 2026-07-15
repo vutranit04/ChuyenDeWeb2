@@ -3,10 +3,10 @@ package com.minhvu.spring_demo.service;
 import com.minhvu.spring_demo.entity.Customer;
 import com.minhvu.spring_demo.exception.ResourceNotFoundException;
 import com.minhvu.spring_demo.repository.CustomerRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.List;
 
 @Service
 public class CustomerService {
@@ -19,16 +19,8 @@ public class CustomerService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public Page<Customer> getAllCustomers(String search, Pageable pageable) {
-        if (search != null && !search.isEmpty()) {
-            // Try searching by name first, then by phone
-            Page<Customer> result = customerRepository.findByFullNameContainingIgnoreCase(search, pageable);
-            if (result.isEmpty()) {
-                result = customerRepository.findByPhoneContaining(search, pageable);
-            }
-            return result;
-        }
-        return customerRepository.findAll(pageable);
+    public List<Customer> getAllCustomers() {
+        return customerRepository.findAll();
     }
 
     public Customer getCustomerById(Long id) {
@@ -37,6 +29,16 @@ public class CustomerService {
     }
 
     public Customer createCustomer(Customer customer) {
+        if (customer.getEmail() != null && customerRepository.existsByEmail(customer.getEmail())) {
+            throw new IllegalArgumentException("Email đã được sử dụng bởi một tài khoản khác!");
+        }
+        if (customer.getCustomerId() != null) {
+            if (customer.getCustomerId() <= 0) {
+                customer.setCustomerId(null);
+            } else if (customerRepository.existsById(customer.getCustomerId())) {
+                throw new IllegalArgumentException("Mã khách hàng (ID: " + customer.getCustomerId() + ") đã tồn tại!");
+            }
+        }
         if (customer.getPassword() != null) {
             customer.setPassword(passwordEncoder.encode(customer.getPassword()));
         } else {

@@ -7,9 +7,10 @@ import com.minhvu.spring_demo.exception.ResourceNotFoundException;
 import com.minhvu.spring_demo.repository.CategoryPostRepository;
 import com.minhvu.spring_demo.repository.PostRepository;
 import com.minhvu.spring_demo.repository.UserRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class PostService {
@@ -26,11 +27,9 @@ public class PostService {
         this.userRepository = userRepository;
     }
 
-    public Page<Post> getAllPosts(Long categoryPostId, Pageable pageable) {
-        if (categoryPostId != null) {
-            return postRepository.findByCategoryPostCategoryPostId(categoryPostId, pageable);
-        }
-        return postRepository.findAll(pageable);
+    public List<Post> getAllPosts() {
+        Sort sort = Sort.by("createdAt").descending();
+        return postRepository.findAll(sort);
     }
 
     public Post getPostById(Long id) {
@@ -39,12 +38,23 @@ public class PostService {
     }
 
     public Post createPost(Post post, String username) {
+        if (post.getPostId() != null) {
+            if (post.getPostId() <= 0) {
+                post.setPostId(null);
+            } else if (postRepository.existsById(post.getPostId())) {
+                throw new IllegalArgumentException("Mã bài viết (ID: " + post.getPostId() + ") đã tồn tại!");
+            }
+        }
         User author = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tác giả"));
         post.setAuthor(author);
 
-        if (post.getCategoryPost() != null && post.getCategoryPost().getCategoryPostId() != null) {
-            CategoryPost cp = categoryPostRepository.findById(post.getCategoryPost().getCategoryPostId())
+        Long cpId = post.getCategoryPostId();
+        if (cpId == null && post.getCategoryPost() != null) {
+            cpId = post.getCategoryPost().getCategoryPostId();
+        }
+        if (cpId != null) {
+            CategoryPost cp = categoryPostRepository.findById(cpId)
                     .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy danh mục bài viết"));
             post.setCategoryPost(cp);
         }
@@ -58,8 +68,13 @@ public class PostService {
         if (postDetails.getSummary() != null) post.setSummary(postDetails.getSummary());
         if (postDetails.getContent() != null) post.setContent(postDetails.getContent());
         if (postDetails.getStatus() != null) post.setStatus(postDetails.getStatus());
-        if (postDetails.getCategoryPost() != null && postDetails.getCategoryPost().getCategoryPostId() != null) {
-            CategoryPost cp = categoryPostRepository.findById(postDetails.getCategoryPost().getCategoryPostId())
+
+        Long cpId = postDetails.getCategoryPostId();
+        if (cpId == null && postDetails.getCategoryPost() != null) {
+            cpId = postDetails.getCategoryPost().getCategoryPostId();
+        }
+        if (cpId != null) {
+            CategoryPost cp = categoryPostRepository.findById(cpId)
                     .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy danh mục bài viết"));
             post.setCategoryPost(cp);
         }
@@ -67,8 +82,9 @@ public class PostService {
     }
 
     public void deletePost(Long id) {
-        Post post = getPostById(id);
-        post.setStatus(false);
-        postRepository.save(post);
+        if (!postRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Không tìm thấy bài viết với ID: " + id);
+        }
+        postRepository.deleteById(id);
     }
 }
