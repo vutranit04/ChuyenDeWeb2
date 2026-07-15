@@ -23,17 +23,20 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final CustomerRepository customerRepository;
     private final ShippingAddressRepository addressRepository;
+    private final EmailService emailService;
 
     public OrderService(OrderRepository orderRepository,
                         OrderDetailRepository orderDetailRepository,
                         ProductRepository productRepository,
                         CustomerRepository customerRepository,
-                        ShippingAddressRepository addressRepository) {
+                        ShippingAddressRepository addressRepository,
+                        EmailService emailService) {
         this.orderRepository = orderRepository;
         this.orderDetailRepository = orderDetailRepository;
         this.productRepository = productRepository;
         this.customerRepository = customerRepository;
         this.addressRepository = addressRepository;
+        this.emailService = emailService;
     }
 
     public List<OrderDTO> getAllOrders(String status) {
@@ -105,6 +108,13 @@ public class OrderService {
 
         order.setTotalAmount(totalAmount);
         order = orderRepository.save(order);
+
+        // Send order confirmation email to customer
+        try {
+            emailService.sendOrderConfirmation(order, details);
+        } catch (Exception e) {
+            System.err.println("Failed to send order confirmation email: " + e.getMessage());
+        }
 
         OrderDTO dto = toDTO(order);
         dto.setOrderDetails(details.stream().map(this::toDetailDTO).collect(Collectors.toList()));
