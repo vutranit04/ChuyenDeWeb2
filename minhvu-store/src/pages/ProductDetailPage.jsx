@@ -56,7 +56,16 @@ export default function ProductDetailPage() {
   }, [id]);
 
   if (loading) return <div className="product-detail container"><LoadingSpinner /></div>;
-  if (!product) return <div className="product-detail container"><div className="empty-state"><h3>Không tìm thấy sản phẩm</h3></div></div>;
+  if (!product || product.status === false) return (
+    <div className="product-detail container" style={{ padding: '40px 0', textAlign: 'center' }}>
+      <div className="empty-state">
+        <h3 style={{ fontSize: '1.5rem', color: '#64748b', marginBottom: '16px' }}>Sản phẩm này không tồn tại hoặc đã ngừng kinh doanh</h3>
+        <Link to="/products" className="btn" style={{ backgroundColor: 'var(--primary)', color: 'white', padding: '10px 20px', borderRadius: '8px', textDecoration: 'none', fontWeight: 600 }}>
+          Quay lại danh sách sản phẩm
+        </Link>
+      </div>
+    </div>
+  );
 
   const imageUrl = getImageUrl(product.image);
 
